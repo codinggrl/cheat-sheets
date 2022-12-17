@@ -1,0 +1,47 @@
+Install OpenSSL if u dont have it.To check type OpenSSL to the terminal.
+
+Create a location to store our local certificate files. This is not a requirement, but it makes it easier to find the keys later.
+
+mkdir ~/certs
+cd ~/certs
+
+With that set up, we’re ready to generate the private key to become a local CA:
+openssl genrsa -des3 -out myCA.key 2048
+
+OpenSSL will ask for a passphrase, which we recommend not skipping and keeping safe. The passphrase will prevent anyone who gets your private key from generating a root certificate of their own. The output should look like this:
+
+Generating RSA private key, 2048 bit long modulus
+.................................................................+++
+.....................................+++
+e is 65537 (0x10001)
+Enter pass phrase for myCA.key:
+Verifying - Enter pass phrase for myCA.key:
+
+Next, we generate a root certificate:
+
+openssl req -x509 -new -nodes -key myCA.key -sha256 -days 1825 -out myCA.pem
+
+You will be prompted for the passphrase of the private key you just chose and a bunch of questions. The answers to those questions aren’t that important. They show up when looking at the certificate, which you will almost never do. I suggest making the Common Name something that you’ll recognize as your root certificate in a list of other certificates. That’s really the only thing that matters.
+
+
+Adding the Root Certificate to macOS Monterey Keychain
+#Via the CLI
+
+sudo security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" myCA.pem
+
+
+
+Via the macOS Keychain App
+
+Open the macOS Keychain app
+If required, make sure you’ve selected the System Keychain (older macOS versions default to this keychain)
+Go to File > Import Items…
+Select your private key file (i.e. myCA.pem)
+Search for whatever you answered as the “Common Name” name above
+Double-click on your root certificate in the list
+Expand the Trust section
+Change the “When using this certificate:” select box to Always TrustClose the certificate window
+During the process it may ask you to enter your password (or scan your finger), do that
+🎉 Celebrate!
+
+
